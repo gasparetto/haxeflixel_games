@@ -1,5 +1,6 @@
 package;
 
+import flixel.effects.FlxFlicker;
 import flixel.addons.tile.FlxRayCastTilemap;
 import flixel.text.FlxText;
 import flixel.group.FlxGroup;
@@ -25,11 +26,12 @@ class PlayState extends FlxState {
 	var lives = 2;
 	var score1 = 0;
 	var score2 = 0;
+	var invincible = false;
 
 	override public function create():Void {
 		super.create();
 
-		FlxG.debugger.visible = true;
+		// FlxG.debugger.visible = true;
 		
 		tileLayersGroup = initTilemap();
 
@@ -48,6 +50,11 @@ class PlayState extends FlxState {
 			if (lives >= 0) {
 				livesText.text = '$lives';
 				player.reset(30, 180);
+				invincible = true;
+				FlxFlicker.flicker(player, 4, 0.05, true, true,
+					function (flicker:FlxFlicker) {
+						invincible = false;
+					});
 			} else {
 				FlxG.switchState(new GameOverState(score1, score2));
 			}
@@ -63,9 +70,11 @@ class PlayState extends FlxState {
 		super.update(elapsed);
 		FlxG.collide(tileLayersGroup, player);
 		FlxG.collide(tileLayersGroup, enemies);
-		FlxG.overlap(player, enemies, function(ob1:FlxObject, ob2:FlxObject) {
-			player.hurt(1.0);
-		});
+		FlxG.collide(tileLayerWalls, bubbles);
+		if (!invincible)
+			FlxG.overlap(player, enemies, function(ob1:FlxObject, ob2:FlxObject) {
+				player.hurt(1.0);
+			});
 	}
 
 	private function initTilemap():FlxGroup {

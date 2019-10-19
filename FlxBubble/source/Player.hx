@@ -62,6 +62,7 @@ class Player extends FlxSprite {
 	override function kill() {
 		alive = false;
 		exists = true;
+		// FlxTween.tween
 		fsm.state = new PlayerStateDie();
 	}
 
@@ -166,7 +167,7 @@ class PlayerStateJump extends FlxFSMState<Player> {
 
 		if (owner.isTouching(FlxObject.DOWN)) {
 			// FlxG.log.notice("jump is touching");
-			// tweenUp.cancelChain(); <= doesn't work
+			// tweenUp.cancelChain(); //<= doesn't work
 			tweenUp.cancel();
 			tweenDown.cancel();
 			fsm.state = new PlayerStateIdle();
