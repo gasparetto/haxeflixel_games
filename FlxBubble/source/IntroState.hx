@@ -66,7 +66,8 @@ class IntroFSMState2 extends FlxFSMState<IntroState> {
 		owner.add(taitoLogo);
 
 		owner.add(createText(0, 170, "© 1990 TAITO CORPORATION"));
-		owner.add(createText(0, 190, "LICENSED BY NINTENDO"));
+	 // owner.add(createText(0, 190, "LICENSED BY NINTENDO"));
+		owner.add(createText(0, 190, "MADE WITH HAXEFLIXEL"));
 	}
 
 	override function update(elapsed:Float, owner:IntroState, fsm:FlxFSM<IntroState>) {
