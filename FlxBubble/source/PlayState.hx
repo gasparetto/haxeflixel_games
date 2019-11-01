@@ -17,6 +17,7 @@ class PlayState extends FlxState {
 	var tileLayerFloors = new FlxRayCastTilemap();
 	var player:Player;
 	var enemies = new FlxTypedGroup<Enemy>();
+	var bubble:Bubble;
 	var bubbles = new FlxTypedGroup<Bubble>();
 	var levelText:FlxText;
 	var livesText:FlxText;
@@ -32,7 +33,7 @@ class PlayState extends FlxState {
 		super.create();
 
 		// FlxG.debugger.visible = true;
-		
+
 		tileLayersGroup = initTilemap();
 
 		add(levelText = createText(119, 15, itos(level)));
@@ -41,24 +42,30 @@ class PlayState extends FlxState {
 		add(score2Text = createText(220, 6, itos(score2), FlxTextAlign.RIGHT));
 
 		add(player = new Player(30, 180));
-        player.bubbleSignal.add(function(bubble:Bubble) {
-            bubbles.add(bubble);
+		player.bubbleStartSignal.add(function(bubble:Bubble) {
+			this.bubble = bubble;
 			add(bubble);
-        });
-        player.respawnSignal.add(function() {
+			bubbles.add(bubble);
+		});
+		player.bubbleEndSignal.add(function() {
+			if (bubble != null) {
+				bubble.floatToTop();
+				bubble = null;
+			}
+		});
+		player.respawnSignal.add(function() {
 			lives--;
 			if (lives >= 0) {
 				livesText.text = '$lives';
 				player.reset(30, 180);
 				invincible = true;
-				FlxFlicker.flicker(player, 4, 0.05, true, true,
-					function (flicker:FlxFlicker) {
-						invincible = false;
-					});
+				FlxFlicker.flicker(player, 4, 0.05, true, true, function(flicker:FlxFlicker) {
+					invincible = false;
+				});
 			} else {
 				FlxG.switchState(new GameOverState(score1, score2));
 			}
-        });
+		});
 
 		enemies.add(new Enemy(tileLayerFloors, 120, -20));
 		enemies.add(new Enemy(tileLayerFloors, 120, 0));
@@ -73,7 +80,16 @@ class PlayState extends FlxState {
 		FlxG.collide(tileLayerWalls, bubbles);
 		if (!invincible)
 			FlxG.overlap(player, enemies, function(ob1:FlxObject, ob2:FlxObject) {
-				player.hurt(1.0);
+				ob1.hurt(1.0);
+			});
+		if (bubble != null)
+			FlxG.overlap(bubble, enemies, function(ob1:FlxObject, ob2:FlxObject) {
+				if (bubble != null) {
+					ob2.hurt(1.0);
+					bubble.grabEnemy();
+					bubble.floatToTop();
+					bubble = null;
+				}
 			});
 	}
 

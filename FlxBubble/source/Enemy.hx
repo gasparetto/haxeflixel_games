@@ -28,13 +28,13 @@ class Enemy extends FlxSprite {
 
 		floors = tileLayerFloors;
 
-		FlxG.watch.add(this, "x");
-		FlxG.watch.add(this, "y");
-		FlxG.watch.add(this, "holefr");
-		FlxG.watch.add(this, "holeup");
+		// FlxG.watch.add(this, "x");
+		// FlxG.watch.add(this, "y");
+		// FlxG.watch.add(this, "holefr");
+		// FlxG.watch.add(this, "holeup");
 
 		loadGraphic(AssetPaths.enemy01__png, true, 16, 16);
-		offset = offset.set(0, -1);
+		offset.set(0, -1);
 
 		facing = FlxObject.LEFT;
 		setFacingFlip(FlxObject.LEFT, false, false);

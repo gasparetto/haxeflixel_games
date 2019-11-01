@@ -15,10 +15,12 @@ class Player extends FlxSprite {
 	public static inline var JUMP_SPEED_X:Float = 30.0;
 	public static inline var JUMP_SPEED_Y:Float = 140.0;
 	public static inline var JUMP_TIME:Float = 0.6;
+	public static inline var SHOT_TIME:Float = 0.5;
 
 	public var fsm:FlxFSM<Player>;
 	public var shooting = false;
-	public var bubbleSignal = new FlxTypedSignal<Bubble->Void>();
+	public var bubbleStartSignal = new FlxTypedSignal<Bubble->Void>();
+	public var bubbleEndSignal = new FlxTypedSignal<Void->Void>();
 	public var respawnSignal = new FlxTypedSignal<Void->Void>();
 
 	public function new(?X:Float = 0, ?Y:Float = 0) {
@@ -29,7 +31,7 @@ class Player extends FlxSprite {
 		// FlxG.watch.add(this, "touching");
 
 		loadGraphic(AssetPaths.player__png, true, 16, 16);
-		offset = offset.set(0, -1);
+		offset.set(0, -1);
 
 		setFacingFlip(FlxObject.LEFT, true, false);
 		setFacingFlip(FlxObject.RIGHT, false, false);
@@ -62,15 +64,15 @@ class Player extends FlxSprite {
 	override function kill() {
 		alive = false;
 		exists = true;
-		// FlxTween.tween
 		fsm.state = new PlayerStateDie();
 	}
 
 	public function shot() {
 		shooting = true;
-		bubbleSignal.dispatch(new Bubble(x, y, facing));
-		new FlxTimer().start(0.5, function (timer:FlxTimer) {
+		bubbleStartSignal.dispatch(new Bubble(x, y, facing));
+		new FlxTimer().start(SHOT_TIME, function (timer:FlxTimer) {
 			shooting = false;
+			bubbleEndSignal.dispatch();
 		});
 	}
 }
@@ -149,7 +151,6 @@ class PlayerStateJump extends FlxFSMState<Player> {
 		tweenDown = FlxTween.tween(owner.velocity, {y: Player.JUMP_SPEED_Y}, Player.JUMP_TIME, {
 			onComplete: function(tween:FlxTween) {
 				fsm.state = new PlayerStateIdle();
-				// FlxG.log.notice("jump to idle");
 			}
 		});
 		tweenUp = tweenUp.then(tweenDown);
@@ -166,7 +167,6 @@ class PlayerStateJump extends FlxFSMState<Player> {
 		owner.animation.play(owner.shooting ? "shot" : (owner.velocity.y < 0 ? "jump" : "fall"));
 
 		if (owner.isTouching(FlxObject.DOWN)) {
-			// FlxG.log.notice("jump is touching");
 			// tweenUp.cancelChain(); //<= doesn't work
 			tweenUp.cancel();
 			tweenDown.cancel();
